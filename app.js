@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-09-19 21:31:44
+ * @LastEditTime: 2021-09-20 16:56:19
  * @LastEditors: Please set LastEditors
  * @Description: 请求入口文件
  * @FilePath: \Anydo-app-server\app.js
@@ -12,7 +12,7 @@ const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
 const logger = require('koa-logger')
-const util = require('./utils/util')
+const util = require('./utils/utils')
 const koa_jwt = require('koa-jwt')
 const path = require('path')
 
@@ -30,7 +30,7 @@ app.use(bodyparser({
 }))
 app.use(json())
 app.use(logger())
-app.use(require('koa-static')(__dirname + '/public'))
+/* app.use(require('koa-static')(__dirname + '/public')) */
 
 // logger
 app.use(async (ctx, next) => {
@@ -56,7 +56,7 @@ app.use(async (ctx, next) => {
 app.use(koa_jwt({
   secret: 'Anydo#32'
 }).unless({
-  path: [/^\/api\/users\/login/, /^\/api\/users\/register/]
+  path: [/^\/api\/users\/login/, /^\/api\/users\/register/, /^\/api\/users\/sendcode/]
 }))
 
 // routes
