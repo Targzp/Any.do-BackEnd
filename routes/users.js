@@ -1,12 +1,13 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-09-20 23:41:47
+ * @LastEditTime: 2021-09-23 23:43:44
  * @LastEditors: Please set LastEditors
  * @Description: 用户登录、注册、验证码发送接口
  * @FilePath: \Anydo-app-server\routes\users.js
  */
 const router = require('koa-router')()
+const multer = require('koa-multer')
 const utils = require('../utils/utils')
 const { transporter } = require('../utils/sendmail')
 const { genPassword } = require('../utils/cryp')
@@ -15,6 +16,25 @@ const User = require('../models/userSchema')
 const Code = require('../models/codeSchema')
 
 router.prefix('/api/users')
+
+// 图片随机时间戳
+const flag = Date.now()
+
+// 文件上传基本配置
+let storage = multer.diskStorage({
+  // 文件保存路径
+  destination: function (req, file, cb) {
+    cb(null, __dirname + '/../assets/avatars')
+  },
+  // 修改文件名称
+  filename: function (req, file, cb) {
+    let fileFormat = file.originalname.split(".")
+    cb(null, flag + "." + "jpg")
+  }
+})
+
+// 加载配置
+let upload = multer({ storage: storage })
 
 // 注册接口
 router.post('/register', async function (ctx, next) {
@@ -117,8 +137,13 @@ router.post('/sendcode', async function (ctx, next) {
     ctx.body = utils.success({}, '发送成功')
   } catch (error) {
     console.log(error)
-    ctx.body = utils.fail(`Error: ${error}`)
+    ctx.body = utils.fail(`发送失败，请检查邮箱是否存在`)
   }
+})
+
+// 用户图像上传接口
+router.post('/sendimg', upload.single('Avatar'), async function (ctx, next) {
+  ctx.body = utils.success({ url: flag }, '上传成功')
 })
 
 module.exports = router

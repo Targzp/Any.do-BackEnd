@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-09-20 16:56:19
+ * @LastEditTime: 2021-09-23 23:36:31
  * @LastEditors: Please set LastEditors
  * @Description: 请求入口文件
  * @FilePath: \Anydo-app-server\app.js
@@ -30,7 +30,15 @@ app.use(bodyparser({
 }))
 app.use(json())
 app.use(logger())
-/* app.use(require('koa-static')(__dirname + '/public')) */
+app.use(require('koa-static')(path.join(__dirname) + '/assets/avatars'))
+
+app.use(async (ctx, next) => {
+  if (!(ctx.url.includes('api'))){
+    ctx.body = 'static file server'
+  } else {
+    await next()
+  }
+})
 
 // logger
 app.use(async (ctx, next) => {
@@ -56,7 +64,7 @@ app.use(async (ctx, next) => {
 app.use(koa_jwt({
   secret: 'Anydo#32'
 }).unless({
-  path: [/^\/api\/users\/login/, /^\/api\/users\/register/, /^\/api\/users\/sendcode/]
+  path: [/^\/api\/users\/login/, /^\/api\/users\/register/, /^\/api\/users\/sendcode/, /^\/api\/users\/sendimg/]
 }))
 
 // routes
