@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-19 21:22:33
- * @LastEditTime: 2021-09-19 23:14:18
+ * @LastEditTime: 2021-09-24 23:00:38
  * @LastEditors: Please set LastEditors
  * @Description: 项目所用工具函数
  * @FilePath: \Anydo-app-server\utils\utils.js
@@ -69,7 +69,7 @@ module.exports = {
   decoded(auth) {
     if (auth) {
       let token = auth.split(' ')[1]
-      return jwt.verify(token, 'Targzp#32')
+      return jwt.verify(token, 'Anydo#32')
     }
     return ''
   },

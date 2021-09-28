@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-09-23 23:36:31
+ * @LastEditTime: 2021-09-26 20:15:43
  * @LastEditors: Please set LastEditors
  * @Description: 请求入口文件
  * @FilePath: \Anydo-app-server\app.js
@@ -64,7 +64,7 @@ app.use(async (ctx, next) => {
 app.use(koa_jwt({
   secret: 'Anydo#32'
 }).unless({
-  path: [/^\/api\/users\/login/, /^\/api\/users\/register/, /^\/api\/users\/sendcode/, /^\/api\/users\/sendimg/]
+  path: [/^\/api\/users\/login/, /^\/api\/users\/register/, /^\/api\/users\/sendcode/]
 }))
 
 // routes

@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-09-23 23:43:44
+ * @LastEditTime: 2021-09-29 00:47:40
  * @LastEditors: Please set LastEditors
  * @Description: 用户登录、注册、验证码发送接口
  * @FilePath: \Anydo-app-server\routes\users.js
@@ -17,8 +17,8 @@ const Code = require('../models/codeSchema')
 
 router.prefix('/api/users')
 
-// 图片随机时间戳
-const flag = Date.now()
+// 图片标识
+let flag = ''
 
 // 文件上传基本配置
 let storage = multer.diskStorage({
@@ -28,13 +28,13 @@ let storage = multer.diskStorage({
   },
   // 修改文件名称
   filename: function (req, file, cb) {
-    let fileFormat = file.originalname.split(".")
-    cb(null, flag + "." + "jpg")
+    flag = Date.now() + "." + "jpg"
+    cb(null, flag)
   }
 })
 
 // 加载配置
-let upload = multer({ storage: storage })
+let upload = multer({ storage })
 
 // 注册接口
 router.post('/register', async function (ctx, next) {
@@ -59,7 +59,7 @@ router.post('/register', async function (ctx, next) {
           return
         }
         userPwd = genPassword(userPwd)  // 注册密码加密
-        const params = { userName, userPwd, userMail }
+        const params = { userName, userPwd, userMail, userAvatar: ' ' }
         await User.create(params)
         await Code.findOneAndRemove({userMail, userCode})
         ctx.body = utils.success({}, '注册成功')
@@ -83,7 +83,7 @@ router.post('/login', async function (ctx, next) {
     // 使用用户名+密码登录
     if (userName) {
       userPwd = genPassword(userPwd)
-      res = await User.findOne({ userName, userPwd }, '_id userName userMail')
+      res = await User.findOne({ userName, userPwd }, '_id userName userSex userMail userBirthday userAvatar')
       if (!res) {
         ctx.body = utils.fail('账户或密码不正确')
         return
@@ -96,7 +96,7 @@ router.post('/login', async function (ctx, next) {
         const nowTime = Date.now()
         if (nowTime < verifyRes.exceedTime) {
           await Code.findOneAndRemove({userMail, userCode})
-          res = await User.findOne({ userMail }, '_id userName userMail')
+          res = await User.findOne({ userMail }, '_id userName userSex userMail userBirthday userAvatar')
           if (!res) {
             ctx.body = utils.fail('该邮箱尚未注册')
             return
@@ -115,6 +115,54 @@ router.post('/login', async function (ctx, next) {
     ctx.body = utils.success(res)
   } catch (error) {
     ctx.body = utils.fail(`Error: ${error}`)
+  }
+})
+
+// 获取用户信息接口
+router.get('/profile', async function (ctx, next) {
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+  try {
+    let res = await User.findById({ _id: data._id }, '_id userName userSex userMail userBirthday userAvatar')
+    ctx.body = utils.success(res, '用户个人信息')
+  } catch (error) {
+    ctx.body = utils.fail(`${error}`)
+  }
+})
+
+// 上传用户信息接口
+router.post('/userprofile', async function (ctx, next) {
+  const params = { ...ctx.request.body }
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+  try {
+    let res = await User.findByIdAndUpdate({ _id: data._id }, params, { new: true }).select('userName userSex userBirthday userAvatar')
+    ctx.body = utils.success(res, '修改成功')
+  } catch (error) {
+    ctx.body = utils.fail(`${error}`)
+  }
+})
+
+// 检测用户重名接口
+router.post('/checkusername', async function (ctx, next) {
+  const { userName } = ctx.request.body
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+  try {
+    let res = await User.findOne({ userName: userName }).ne('_id', data._id)
+    if (res) {
+      ctx.body = utils.success(true, '用户名已存在')
+    } else {
+      ctx.body = utils.success(false, '用户名不存在')
+    }
+  } catch (error) {
+    console.log(`${error}`)
   }
 })
 
@@ -143,7 +191,20 @@ router.post('/sendcode', async function (ctx, next) {
 
 // 用户图像上传接口
 router.post('/sendimg', upload.single('Avatar'), async function (ctx, next) {
-  ctx.body = utils.success({ url: flag }, '上传成功')
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+  try {
+    await User.findByIdAndUpdate({
+      _id: data._id
+    }, {
+      userAvatar: flag
+    })
+    ctx.body = utils.success({ url: flag }, '上传成功')
+  } catch (error) {
+    ctx.body = utils.fail(`${error}`)
+  }
 })
 
 module.exports = router

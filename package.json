@@ -11,26 +11,26 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "crypto": "^1.0.1",
-    "debug": "^4.1.1",
+    "debug": "^4.3.2",
     "jsonwebtoken": "^8.5.1",
-    "koa": "^2.7.0",
-    "koa-bodyparser": "^4.2.1",
-    "koa-convert": "^1.2.0",
+    "koa": "^2.13.3",
+    "koa-bodyparser": "^4.3.0",
+    "koa-convert": "^2.0.0",
     "koa-json": "^2.0.2",
-    "koa-jwt": "^4.0.1",
-    "koa-logger": "^3.2.0",
+    "koa-jwt": "^4.0.3",
+    "koa-logger": "^3.2.1",
     "koa-multer": "^1.0.2",
     "koa-onerror": "^4.1.0",
-    "koa-router": "^7.4.0",
+    "koa-router": "^10.1.1",
     "koa-static": "^5.0.0",
-    "koa-views": "^6.2.0",
+    "koa-views": "^7.0.1",
     "log4js": "^6.3.0",
     "md5": "^2.3.0",
-    "mongoose": "^5.13.7",
-    "nodemailer": "^6.6.3",
-    "pug": "^2.0.3"
+    "mongoose": "^6.0.7",
+    "nodemailer": "^6.6.5",
+    "pug": "^3.0.2"
   },
   "devDependencies": {
-    "nodemon": "^1.19.4"
+    "nodemon": "^2.0.13"
   }
 }
