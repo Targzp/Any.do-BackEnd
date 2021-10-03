@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-09-29 00:47:40
+ * @LastEditTime: 2021-10-03 01:18:13
  * @LastEditors: Please set LastEditors
  * @Description: 用户登录、注册、验证码发送接口
  * @FilePath: \Anydo-app-server\routes\users.js
@@ -36,48 +36,63 @@ let storage = multer.diskStorage({
 // 加载配置
 let upload = multer({ storage })
 
-// 注册接口
-router.post('/register', async function (ctx, next) {
-  let { userName, userPwd, userMail, userCode } = ctx.request.body
-  try {
-    const res = await Code.findOne({userMail, userCode})
-    // 验证验证码是否存在
-    if (res) {
-      const nowTime = Date.now()  // 获取当前时间
-      // 验证验证码是否过期
-      if (nowTime < res.exceedTime) {
-        // 验证用户名唯一
-        const verifyNameRepeat = await User.findOne({ userName })
-        if (verifyNameRepeat) {
-          ctx.body = utils.fail('用户名已注册')
-          return
-        }
-        // 验证邮箱唯一
-        const verifyMailRepeat = await User.findOne({ userMail })
-        if (verifyMailRepeat) {
-          ctx.body = utils.fail('邮箱已注册')
-          return
-        }
-        userPwd = genPassword(userPwd)  // 注册密码加密
-        const params = { userName, userPwd, userMail, userAvatar: ' ' }
-        await User.create(params)
-        await Code.findOneAndRemove({userMail, userCode})
-        ctx.body = utils.success({}, '注册成功')
+// 邮箱验证码检测中间件
+const verifyCode = async (ctx, next) => {
+  let { userMail, userCode } = ctx.request.body
+  // 增强通用性，有 userMail 字段才进行验证码检测
+  if (userMail) {
+    try {
+      const res = await Code.findOne({ userMail, userCode })
+      // 验证验证码是否存在
+      if (res) {
+        await next()
       } else {
-        await Code.findOneAndRemove({userMail, userCode})
-        ctx.body = utils.fail('验证码已过期')
+        ctx.body = utils.fail('验证码错误')
+        return
       }
-    } else {
-      ctx.body = utils.fail('验证码错误')
+    } catch (error) {
+      ctx.body = utils.fail(`Error: ${error}`)
     }
+  } else {
+    await next()
+  }
+}
+
+// 邮箱验证专用接口
+router.post('/verifycode', verifyCode, async function (ctx, next) {
+  ctx.body = utils.success({}, '验证成功')
+})
+
+// 注册接口
+router.post('/register', verifyCode, async function (ctx, next) {
+  let { userName, userPwd, userMail } = ctx.request.body
+  try {
+      // 验证用户名唯一
+      const verifyNameRepeat = await User.findOne({ userName })
+      if (verifyNameRepeat) {
+        ctx.body = utils.fail('用户名已注册')
+        return
+      }
+
+      // 验证邮箱唯一
+      const verifyMailRepeat = await User.findOne({ userMail })
+      if (verifyMailRepeat) {
+        ctx.body = utils.fail('邮箱已注册')
+        return
+      }
+
+      userPwd = genPassword(userPwd)  // 注册密码加密
+      const params = { userName, userPwd, userMail, userAvatar: ' ' }
+      await User.create(params)
+      ctx.body = utils.success({}, '注册成功')
   } catch (error) {
     ctx.body = utils.fail(`Error: ${error}`)
   }
 })
 
 // 登录接口
-router.post('/login', async function (ctx, next) {
-  let { userName, userPwd, userMail, userCode } = ctx.request.body
+router.post('/login', verifyCode, async function (ctx, next) {
+  let { userName, userPwd, userMail } = ctx.request.body
   let res = null
   try {
     // 使用用户名+密码登录
@@ -89,26 +104,16 @@ router.post('/login', async function (ctx, next) {
         return
       }
     }
+    
     // 使用邮箱登录
     if (userMail) {
-      const verifyRes = await Code.findOne({userMail, userCode})
-      if (verifyRes) {
-        const nowTime = Date.now()
-        if (nowTime < verifyRes.exceedTime) {
-          await Code.findOneAndRemove({userMail, userCode})
-          res = await User.findOne({ userMail }, '_id userName userSex userMail userBirthday userAvatar')
-          if (!res) {
-            ctx.body = utils.fail('该邮箱尚未注册')
-            return
-          }
-        } else {
-          await Code.findOneAndRemove({userMail, userCode})
-          ctx.body = utils.fail('验证码已过期')
-        }
-      } else {
-        ctx.body = utils.fail('验证码错误')
+      res = await User.findOne({ userMail }, '_id userName userSex userMail userBirthday userAvatar')
+      if (!res) {
+        ctx.body = utils.fail('该邮箱尚未注册')
+        return
       }
     }
+
     // 生成 token
     const token = jwt.sign({ data: res }, 'Anydo#32', { expiresIn: '3d' })
     res._doc.token = token
@@ -166,11 +171,37 @@ router.post('/checkusername', async function (ctx, next) {
   }
 })
 
+// 密码更新接口
+router.post('/updatepassword', async function (ctx, next) {
+  let { oldPwd, newPwd } = ctx.request.body
+
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+
+  newPwd = genPassword(newPwd)
+
+  // 检测是否有旧密码
+  if (oldPwd) {
+    oldPwd = genPassword(oldPwd)
+    let res = await User.findById({ _id: data._id })
+    if (oldPwd !== res.userPwd) {
+      ctx.body = utils.success(false, '密码不正确')
+      return
+    }
+  }
+
+  await User.findByIdAndUpdate({ _id: data._id }, { userPwd: newPwd })
+
+  ctx.body = utils.success(true, '更改成功')
+})
+
 // 验证码发送接口
 router.post('/sendcode', async function (ctx, next) {
   const { userMail } = ctx.request.body
   let userCode = Math.floor(Math.random() * 8998 + 1001)  // 在 1001~9998 之间随机生成数字作为验证码
-  let exceedTime = Date.now() + 300000  // 设定验证码超时时间
+  let exceedTime = 300000 // 设定验证码超时时间
   // 发送的配置项
   const mailOptions ={
     from: '2392859135@qq.com', // 发送方
@@ -180,11 +211,19 @@ router.post('/sendcode', async function (ctx, next) {
   }
   const params = { userMail, userCode, exceedTime }
   try {
+    // 验证码暂存数据库
     await Code.create(params)
+
+    // 发送邮件
     await transporter.sendMail(mailOptions)
+
+    // 设定超时时间，超时删除验证码
+    setTimeout(async () => {
+      await Code.findOneAndRemove({userMail, userCode})
+    }, exceedTime)
+    
     ctx.body = utils.success({}, '发送成功')
   } catch (error) {
-    console.log(error)
     ctx.body = utils.fail(`发送失败，请检查邮箱是否存在`)
   }
 })
