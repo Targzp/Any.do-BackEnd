@@ -1,7 +1,15 @@
 /*
+ * @Author: your name
+ * @Date: 2021-10-04 16:46:54
+ * @LastEditTime: 2021-10-04 16:46:56
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \Anydo-app-server\routes\users.js
+ */
+/*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-10-03 01:18:13
+ * @LastEditTime: 2021-10-03 23:39:31
  * @LastEditors: Please set LastEditors
  * @Description: 用户登录、注册、验证码发送接口
  * @FilePath: \Anydo-app-server\routes\users.js
@@ -182,19 +190,50 @@ router.post('/updatepassword', async function (ctx, next) {
 
   newPwd = genPassword(newPwd)
 
-  // 检测是否有旧密码
-  if (oldPwd) {
-    oldPwd = genPassword(oldPwd)
-    let res = await User.findById({ _id: data._id })
-    if (oldPwd !== res.userPwd) {
-      ctx.body = utils.success(false, '密码不正确')
-      return
+  try {
+    // 检测是否有旧密码
+    if (oldPwd) {
+      oldPwd = genPassword(oldPwd)
+      let res = await User.findById({ _id: data._id })
+      if (oldPwd !== res.userPwd) {
+        ctx.body = utils.fail('密码不正确')
+        return
+      }
     }
+  
+    await User.findByIdAndUpdate({ _id: data._id }, { userPwd: newPwd })
+  
+    ctx.body = utils.success({}, '更改成功')
+  } catch (error) {
+    ctx.body = utils.fail(`${error}`)
   }
 
-  await User.findByIdAndUpdate({ _id: data._id }, { userPwd: newPwd })
+})
 
-  ctx.body = utils.success(true, '更改成功')
+// 邮箱绑定更新接口
+router.post('/updatebindmail', verifyCode, async function (ctx, next) {
+  let { userMail } = ctx.request.body
+
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+
+  try {
+    // 验证邮箱唯一
+    const verifyMailRepeat = await User.findOne({ userMail })
+    if (verifyMailRepeat) {
+      ctx.body = utils.fail('邮箱已注册')
+      return
+    }
+  
+    await User.findByIdAndUpdate({ _id: data._id }, { userMail })
+  
+    ctx.body = utils.success({}, '绑定成功')
+  } catch (error) {
+    ctx.body = utils.fail(`${error}`)
+  }
+
 })
 
 // 验证码发送接口
