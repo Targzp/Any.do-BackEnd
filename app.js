@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-09-26 20:15:43
+ * @LastEditTime: 2021-10-06 23:34:37
  * @LastEditors: Please set LastEditors
  * @Description: 请求入口文件
  * @FilePath: \Anydo-app-server\app.js
@@ -54,7 +54,7 @@ app.use(async (ctx, next) => {
     console.log(err)
     if (err.status == '401') {
       ctx.status = 200
-      ctx.body = util.fail('登录时效已过', util.CODE.AUTH_ERROR)
+      ctx.body = util.fail('登录时效已过', null ,util.CODE.AUTH_ERROR)
     } else {
       throw err
     }

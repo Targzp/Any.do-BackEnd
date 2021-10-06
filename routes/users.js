@@ -1,19 +1,12 @@
 /*
- * @Author: your name
- * @Date: 2021-10-04 16:46:54
- * @LastEditTime: 2021-10-04 16:46:56
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: \Anydo-app-server\routes\users.js
- */
-/*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-10-03 23:39:31
+ * @LastEditTime: 2021-10-06 22:49:57
  * @LastEditors: Please set LastEditors
  * @Description: 用户登录、注册、验证码发送接口
  * @FilePath: \Anydo-app-server\routes\users.js
  */
+const path = require('path')
 const router = require('koa-router')()
 const multer = require('koa-multer')
 const utils = require('../utils/utils')
@@ -32,7 +25,7 @@ let flag = ''
 let storage = multer.diskStorage({
   // 文件保存路径
   destination: function (req, file, cb) {
-    cb(null, __dirname + '/../assets/avatars')
+    cb(null, path.resolve(__dirname + '/../assets/avatars') )
   },
   // 修改文件名称
   filename: function (req, file, cb) {
@@ -43,6 +36,24 @@ let storage = multer.diskStorage({
 
 // 加载配置
 let upload = multer({ storage })
+
+// 头像图片删除中间件
+const avatarDelete = async (ctx, next) => {
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+  try {
+    const user = await User.findById({ _id: data._id })
+    const fileName = user.userAvatar
+    if (fileName !== ' ') {
+      utils.deleteFile(fileName, 'avatar')
+    }
+    await next()
+  } catch (error) {
+    ctx.body = utils.fail(`Error: ${error}`)
+  }
+}
 
 // 邮箱验证码检测中间件
 const verifyCode = async (ctx, next) => {
@@ -233,7 +244,25 @@ router.post('/updatebindmail', verifyCode, async function (ctx, next) {
   } catch (error) {
     ctx.body = utils.fail(`${error}`)
   }
+})
 
+// 用户注销账户接口
+router.post('/deleteaccount', verifyCode, avatarDelete, async function (ctx, next) {
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+
+  try {
+    let res = await User.findByIdAndRemove({ _id: data._id })
+    if (res) {
+      ctx.body = utils.success({}, '注销成功')
+    } else {
+      ctx.body = utils.fail('注销失败')
+    }
+  } catch (error) {
+    ctx.body = utils.fail(`注销失败: ${error}`)
+  }
 })
 
 // 验证码发送接口
@@ -268,7 +297,7 @@ router.post('/sendcode', async function (ctx, next) {
 })
 
 // 用户图像上传接口
-router.post('/sendimg', upload.single('Avatar'), async function (ctx, next) {
+router.post('/sendimg', avatarDelete, upload.single('Avatar'), async function (ctx, next) {
   let auth = ctx.request.headers.authorization
   let {
     data

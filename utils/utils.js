@@ -1,11 +1,13 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-19 21:22:33
- * @LastEditTime: 2021-09-24 23:00:38
+ * @LastEditTime: 2021-10-06 22:34:45
  * @LastEditors: Please set LastEditors
  * @Description: 项目所用工具函数
  * @FilePath: \Anydo-app-server\utils\utils.js
  */
+const fs = require('fs')
+const path = require('path')
 const jwt = require('jsonwebtoken')
 const CODE = {
   SUCCESS: 200,
@@ -55,7 +57,7 @@ module.exports = {
    * @param {string} msg
    * @param {number} code
    */
-  fail(msg = '', code = CODE.BUSINESS_ERROR, data = '') {
+  fail(msg = '', data = '', code = CODE.BUSINESS_ERROR) {
     return {
       code,
       data,
@@ -97,6 +99,19 @@ module.exports = {
       }
     }
     return fmt
+  },
+  deleteFile(fileName, flag) {
+    if (flag === 'avatar') {
+      const filePath = path.resolve(__dirname, `../assets/avatars/${fileName}`)
+      try {
+        let res = fs.unlinkSync(filePath)
+        return !res
+      } catch (error) {
+        return false
+      }
+    } else if (flag === 'taskFile') {
+      /* TODO: 任务文件的删除处理 */
+    }
   },
   CODE
 }
