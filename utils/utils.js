@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-19 21:22:33
- * @LastEditTime: 2021-10-06 22:34:45
+ * @LastEditTime: 2021-10-17 17:04:14
  * @LastEditors: Please set LastEditors
  * @Description: 项目所用工具函数
  * @FilePath: \Anydo-app-server\utils\utils.js
@@ -100,6 +100,11 @@ module.exports = {
     }
     return fmt
   },
+  /**
+   * @description: 删除文件工具函数
+   * @param {*} fileName
+   * @param {*} flag
+   */  
   deleteFile(fileName, flag) {
     if (flag === 'avatar') {
       const filePath = path.resolve(__dirname, `../assets/avatars/${fileName}`)

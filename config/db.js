@@ -20,5 +20,5 @@ db.on('error', err => {
 })
 
 db.on('open', () => {
-    console.log("**数据库TMD连接成功了**")
+    console.log("**Any.do数据库连接成功**")
 })

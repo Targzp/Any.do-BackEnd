@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-10-06 22:49:57
+ * @LastEditTime: 2021-10-26 16:49:30
  * @LastEditors: Please set LastEditors
  * @Description: 用户登录、注册、验证码发送接口
  * @FilePath: \Anydo-app-server\routes\users.js
@@ -15,6 +15,8 @@ const { genPassword } = require('../utils/cryp')
 const jwt = require('jsonwebtoken')
 const User = require('../models/userSchema')
 const Code = require('../models/codeSchema')
+const CustomSetting = require('../models/customSettingsSchema')
+const Lists = require('../models/listsSchema')
 
 router.prefix('/api/users')
 
@@ -102,7 +104,9 @@ router.post('/register', verifyCode, async function (ctx, next) {
 
       userPwd = genPassword(userPwd)  // 注册密码加密
       const params = { userName, userPwd, userMail, userAvatar: ' ' }
-      await User.create(params)
+      const res = await User.create(params)             // 用户数据存储
+      await Lists.create({ userId: res._id })           // 清单数据初始化
+      await CustomSetting.create({ userId: res._id })   // 用户自定义设置初始化
       ctx.body = utils.success({}, '注册成功')
   } catch (error) {
     ctx.body = utils.fail(`Error: ${error}`)
@@ -256,6 +260,7 @@ router.post('/deleteaccount', verifyCode, avatarDelete, async function (ctx, nex
   try {
     let res = await User.findByIdAndRemove({ _id: data._id })
     if (res) {
+      await CustomSetting.findOneAndRemove({ userId: data._id })
       ctx.body = utils.success({}, '注销成功')
     } else {
       ctx.body = utils.fail('注销失败')

@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-10-06 23:34:37
+ * @LastEditTime: 2021-10-24 17:18:05
  * @LastEditors: Please set LastEditors
  * @Description: 请求入口文件
  * @FilePath: \Anydo-app-server\app.js
@@ -20,6 +20,10 @@ const path = require('path')
 require('./config/db')
 
 const users = require('./routes/users')
+const feedback = require('./routes/feedback')
+const customSettings = require('./routes/customSettings')
+const lists = require('./routes/lists')
+const tasks = require('./routes/tasks')
 
 // error handler
 onerror(app)
@@ -69,6 +73,10 @@ app.use(koa_jwt({
 
 // routes
 app.use(users.routes(), users.allowedMethods())
+app.use(feedback.routes(), feedback.allowedMethods())
+app.use(customSettings.routes(), customSettings.allowedMethods())
+app.use(lists.routes(), lists.allowedMethods())
+app.use(tasks.routes(), tasks.allowedMethods())
 
 // error-handling
 app.on('error', (err, ctx) => {
