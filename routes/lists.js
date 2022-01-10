@@ -1,8 +1,8 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-10-26 16:54:52
- * @LastEditTime: 2021-12-01 17:38:59
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-01-10 10:26:04
+ * @LastEditors: 胡晨明
  * @Description: 清单数据接口汇总
  * @FilePath: \Anydo-app-server\routes\lists.js
  */
@@ -12,7 +12,7 @@ const Lists = require('../models/listsSchema')
 
 router.prefix('/api/lists')
 
-// 获取用户清单列表数据接口
+//! 获取用户清单列表数据接口
 router.get('/userlists', async function (ctx, next) {
   let auth = ctx.request.headers.authorization
   let {
@@ -27,7 +27,7 @@ router.get('/userlists', async function (ctx, next) {
   }
 })
 
-// 用户添加清单数据接口
+//! 用户添加清单数据接口
 router.post('/addlist', async function (ctx, next) {
   let { listName, listFlag } = ctx.request.body
 
@@ -54,7 +54,7 @@ router.post('/addlist', async function (ctx, next) {
   }
 })
 
-// 用户删除清单接口
+//! 用户删除清单接口
 router.post('/deletelist', async function (ctx, next) {
   let { listId } = ctx.request.body
 
@@ -72,7 +72,7 @@ router.post('/deletelist', async function (ctx, next) {
   }
 })
 
-// 用户清单名称修改接口
+//! 用户清单名称修改接口
 router.post('/editlist', async function(ctx, next) {
   let { listId, listName } = ctx.request.body
 
