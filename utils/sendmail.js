@@ -1,14 +1,14 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-19 23:04:07
- * @LastEditTime: 2021-09-20 17:29:02
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-01-16 21:56:06
+ * @LastEditors: 胡晨明
  * @Description: 发送邮箱功能模块
  * @FilePath: \Anydo-app-server\utils\sendmail.js
  */
 const nodemailer = require('nodemailer')
 let transporter = nodemailer.createTransport({
-    //node_modules/nodemailer/lib/well-known/services.json  查看相关的配置，如果使用qq邮箱，就查看qq邮箱的相关配置
+    // node_modules/nodemailer/lib/well-known/services.json  查看相关的配置，如果使用qq邮箱，就查看qq邮箱的相关配置
     service: 'qq', //类型qq邮箱
     secureConnection: true,
     auth: {

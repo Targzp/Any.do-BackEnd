@@ -106,16 +106,20 @@ module.exports = {
    * @param {*} flag
    */  
   deleteFile(fileName, flag) {
+    let filePath = ''
+
     if (flag === 'avatar') {
-      const filePath = path.resolve(__dirname, `../assets/avatars/${fileName}`)
-      try {
-        let res = fs.unlinkSync(filePath)
-        return !res
-      } catch (error) {
-        return false
-      }
+      filePath = path.resolve(__dirname, `../assets/avatars/${fileName}`)
     } else if (flag === 'taskFile') {
       /* TODO: 任务文件的删除处理 */
+      filePath = path.resolve(__dirname, `../assets/userFiles/${fileName}`)
+    }
+
+    try {
+      let res = fs.unlinkSync(filePath)
+      return !res
+    } catch (error) {
+      return false
     }
   },
   CODE

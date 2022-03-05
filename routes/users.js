@@ -1,22 +1,26 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-09-17 21:10:48
- * @LastEditTime: 2021-10-26 16:49:30
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-03-03 22:14:37
+ * @LastEditors: 胡晨明
  * @Description: 用户登录、注册、验证码发送接口
  * @FilePath: \Anydo-app-server\routes\users.js
  */
 const path = require('path')
 const router = require('koa-router')()
-const multer = require('koa-multer')
+const multer = require('@koa/multer')
 const utils = require('../utils/utils')
 const { transporter } = require('../utils/sendmail')
 const { genPassword } = require('../utils/cryp')
 const jwt = require('jsonwebtoken')
+const dayjs = require('dayjs')
+const isToday = require('dayjs/plugin/isToday')
 const User = require('../models/userSchema')
 const Code = require('../models/codeSchema')
 const CustomSetting = require('../models/customSettingsSchema')
 const Lists = require('../models/listsSchema')
+const Achievements = require('../models/achievementsSchema')
+dayjs.extend(isToday)
 
 router.prefix('/api/users')
 
@@ -27,11 +31,11 @@ let flag = ''
 let storage = multer.diskStorage({
   // 文件保存路径
   destination: function (req, file, cb) {
-    cb(null, path.resolve(__dirname + '/../assets/avatars') )
+    cb(null, path.resolve(__dirname + '/../assets/avatars'))
   },
   // 修改文件名称
   filename: function (req, file, cb) {
-    flag = Date.now() + "." + "jpg"
+    flag = Date.now().toString(16) + "." + "jpg"
     cb(null, flag)
   }
 })
@@ -79,6 +83,41 @@ const verifyCode = async (ctx, next) => {
   }
 }
 
+// 计算用户使用天数和上次登录时间工具函数
+const countUserUseDays = async (id) => {
+  const res = await User.findById({ _id: id }, { _id: false }).select('useDays lastLoginTime')
+
+  let useDays = res.useDays || 0
+  let lastLoginTime = res.lastLoginTime || dayjs().valueOf()
+
+  if (!useDays) {
+    useDays = 1
+
+    await User.findByIdAndUpdate({ _id: id }, {
+      useDays,
+      lastLoginTime
+    })
+
+    return
+  }
+
+  if (!(dayjs(lastLoginTime).isToday())) {
+    useDays++
+    lastLoginTime = dayjs().valueOf()
+
+    await User.findByIdAndUpdate({ _id: id }, {
+      useDays,
+      lastLoginTime
+    })
+  } else {
+    lastLoginTime = dayjs().valueOf()
+
+    await User.findByIdAndUpdate({ _id: id }, {
+      lastLoginTime
+    })
+  }
+}
+
 // 邮箱验证专用接口
 router.post('/verifycode', verifyCode, async function (ctx, next) {
   ctx.body = utils.success({}, '验证成功')
@@ -107,6 +146,7 @@ router.post('/register', verifyCode, async function (ctx, next) {
       const res = await User.create(params)             // 用户数据存储
       await Lists.create({ userId: res._id })           // 清单数据初始化
       await CustomSetting.create({ userId: res._id })   // 用户自定义设置初始化
+      await Achievements.create({ userId: res._id })    // 用户成就值初始化
       ctx.body = utils.success({}, '注册成功')
   } catch (error) {
     ctx.body = utils.fail(`Error: ${error}`)
@@ -138,8 +178,12 @@ router.post('/login', verifyCode, async function (ctx, next) {
     }
 
     // 生成 token
-    const token = jwt.sign({ data: res }, 'Anydo#32', { expiresIn: '3d' })
+    const token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + (86400 * 2), data: res }, 'Anydo#32')
     res._doc.token = token
+    ctx.session.userId = res._id
+
+    await countUserUseDays(res._id)
+
     ctx.body = utils.success(res)
   } catch (error) {
     ctx.body = utils.fail(`Error: ${error}`)
@@ -279,8 +323,8 @@ router.post('/sendcode', async function (ctx, next) {
   const mailOptions ={
     from: '2392859135@qq.com', // 发送方
     to: userMail, //接收者邮箱，多个邮箱用逗号间隔
-    subject: '个人事务贴身管家验证码服务', // 标题
-    text: `您的验证码为：${userCode}，5分钟内有效`, // 文本内容
+    subject: 'Any.do验证码服务', // 标题
+    text: `您的验证码为: ${userCode}, 5分钟内有效`, // 文本内容
   }
   const params = { userMail, userCode, exceedTime }
   try {
@@ -297,7 +341,7 @@ router.post('/sendcode', async function (ctx, next) {
     
     ctx.body = utils.success({}, '发送成功')
   } catch (error) {
-    ctx.body = utils.fail(`发送失败，请检查邮箱是否存在`)
+    ctx.body = utils.fail(`发送失败, 请检查邮箱是否存在`)
   }
 })
 
@@ -314,6 +358,59 @@ router.post('/sendimg', avatarDelete, upload.single('Avatar'), async function (c
       userAvatar: flag
     })
     ctx.body = utils.success({ url: flag }, '上传成功')
+  } catch (error) {
+    ctx.body = utils.fail(`${error}`)
+  }
+})
+
+// 用户搜索接口
+router.post('/search', async function (ctx, next) {
+  const { userInfo } = ctx.request.body
+
+  try {
+    const res = await User.findOne({ $or: [{ userName: userInfo }, { userMail: userInfo  }] }).select('userName userMail')
+
+    if (res) {
+      ctx.body = utils.success(res, '搜索成功')
+    } else {
+      ctx.body = utils.success({}, '未找到')
+    }
+  } catch (error) {
+    ctx.body = utils.fail(`${error}`)
+  }
+})
+
+// 用户计算使用天数接口
+router.post('/countusedays', async function (ctx, next) {
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+
+  try {
+    await countUserUseDays(data._id)
+
+    ctx.body = utils.success({}, '计算当前用户使用天数成功')
+  } catch (error) {
+    ctx.body = utils.fail(`${error}`)
+  }
+})
+
+// 用户获取使用天数接口
+router.get('/getusedays', async function (ctx, next) {
+  let auth = ctx.request.headers.authorization
+  let {
+    data
+  } = utils.decoded(auth)
+
+  try {
+    const res = await User.findById({ _id: data._id }).select('useDays')
+
+    if (res) {
+      ctx.body = utils.success({ useDays: res.useDays }, '获取用户使用天数成功')
+    } else {
+      ctx.body = utils.success({}, '用户暂无使用天数')
+    }
   } catch (error) {
     ctx.body = utils.fail(`${error}`)
   }

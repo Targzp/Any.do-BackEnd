@@ -15,6 +15,8 @@ const UserSchema = mongoose.Schema({
     "userAvatar": String,   //用户头像标识
     "userSex": String,      //用户性别
     "userBirthday": Date,   //用户生日
+    "useDays": Number,      //用户使用天数
+    "lastLoginTime": Number, //用户上次登录时间 
     "createTime": {
         type: Date,
         default: Date.now()

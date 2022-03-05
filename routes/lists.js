@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-10-26 16:54:52
- * @LastEditTime: 2022-01-10 10:26:04
+ * @LastEditTime: 2022-02-14 16:53:25
  * @LastEditors: 胡晨明
  * @Description: 清单数据接口汇总
  * @FilePath: \Anydo-app-server\routes\lists.js
@@ -16,14 +16,40 @@ router.prefix('/api/lists')
 router.get('/userlists', async function (ctx, next) {
   let auth = ctx.request.headers.authorization
   let {
+    data
+  } = utils.decoded(auth)
+
+  try {
+    const res = await Lists.findOne({ userId: data._id }, { _id: false }).select('allLists')
+    ctx.body = utils.success(res, '获取用户清单列表数据成功')
+  } catch (error) {
+    ctx.body = utils.fail(`${error}`)
+  }
+})
+
+//! 用户查询清单数据接口
+router.post('/searchlist', async function (ctx, next) {
+  const { listName } = ctx.request.body
+
+  let auth = ctx.request.headers.authorization
+  let {
       data
   } = utils.decoded(auth)
 
   try {
-      const res = await Lists.findOne({ userId: data._id }, { _id: false }).select('allLists')
-      ctx.body = utils.success(res, '获取用户清单列表数据成功')
+    const searchRes = []  // 搜索结果集合
+    const res = await Lists.findOne({ userId: data._id }, { _id: false }).select('allLists')
+    const allLists = res.allLists
+
+    allLists.forEach(item => {
+      if (item.listName.includes(listName)) {
+        searchRes.push(item)
+      }
+    })
+
+    ctx.body = utils.success(searchRes, '获取用户清单列表数据成功')
   } catch (error) {
-      ctx.body = utils.fail(`${error}`)
+    ctx.body = utils.fail(`${error}`)
   }
 })
 

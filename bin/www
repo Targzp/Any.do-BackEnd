@@ -7,6 +7,8 @@
 var app = require('../app');
 var debug = require('debug')('demo:server');
 var http = require('http');
+const WebSocket = require('ws')
+const WSOrder = require('../config/wss')
 
 /**
  * Get port from environment and store in Express.
@@ -20,8 +22,6 @@ var port = normalizePort(process.env.PORT || '3000');
  */
 
 var server = http.createServer(app.callback());
-// const { wsServer } = require("socket.io")
-// const io = new wsServer(server, { /* options */ });
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -30,6 +30,14 @@ var server = http.createServer(app.callback());
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+/**
+ * Create WebSocket server.
+ */
+let wss = new WebSocket.Server({
+  server: server  // 挂载到原有服务器上，不然得重新开一个端口
+})
+WSOrder.createWss(wss)  // 使用 createWss 方法开启监听
 
 /**
  * Normalize a port into a number, string, or false.

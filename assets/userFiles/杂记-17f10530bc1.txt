@@ -1,0 +1,55 @@
+姓名：胡晨明
+身份证号码：32028119990302651
+电话：18601477532
+预约分院：爱康国宾南京江宁体检中心
+日期：2021.10.26
+
+大学英语四级考试准考证号：320221202108905
+#224979
+一、JS语法
+入门：《JavaScript DOM编程艺术》
+☆☆☆《JavaScript高级程序设计（第四版）》（红宝书）
+在线版：现代JavaScript教程 （https://zh.javascript.info/）
+ES6补充阅读：《practice modern JavaScript》
+---------------------------------------------------------
+二、横向拓展
+《JavaScript 忍者秘籍》
+《JavaScript 框架设计》
+《JavaScript设计模式与开发实践》
+《算法（第四版）》
+---------------------------------------------------------
+三、语言设计细节
+☆☆☆《你不知道的JavaScript（上卷）》（黄宝书）
+☆☆☆《JavaScript语言精髓与编程实践》（绿宝书）
+电子书：《JavaScript20周年》（https://zhuanlan.zhihu.com/p/257990478）
+---------------------------------------------------------
+四、小书
+《DOM启蒙》
+《JavaScript函数式编程指南》
+---------------------------------------------------------
+五、经典（略微过时）
+《JavaScript 语言精粹》（蝴蝶书）
+《精通JavaScript开发》
+
+是否异常：
+dropdownlistContentjqxWidget26156f40
+本人近14天内到访过的疫情严重地区
+dropdownlistContentjqxWidgetec5eaa05 > span
+宁归来健康码（或苏康码）
+dropdownlistContentjqxWidget9842c407
+14天内是否去过南京以外城市
+dropdownlistContentjqxWidgetfd0ae264
+手机查询最近14天漫游地
+jqxWidgetebf58f7b
+次日是否返校
+dropdownlistContentjqxWidgetfc58f0e4
+是否在南京
+dropdownlistContentjqxWidgetf8e81c41
+所在地省份
+dropdownlistContentjqxWidget1a32f2da
+所在地城市
+dropdownlistContentjqxWidgetab359a95
+所在地区县
+dropdownlistContentjqxWidget86b1c09c
+详细地址
+jqxWidgete17414af

@@ -35,14 +35,9 @@ const customSettingsSchema = mongoose.Schema({
         }
     },
     "notify": {
-        "dailyNotifyTime": {
-            "time": {
-                type: String
-            },
-            "PA": {
-                type: String,
-                default: "AM"
-            }
+        "mailNotify": {
+          type: Boolean,
+          default: false
         },
         "webNotify": {
             type: Boolean,
