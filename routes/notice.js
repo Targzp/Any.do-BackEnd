@@ -336,15 +336,16 @@ router.post('/tasknotice', async function (ctx, next) {
 
     for (let id of listShareIds) {
       id = id.toString()
+      // 发送通知方不必接收通知信息
       if (id === data._id) {
         continue
       }
-      
+
       let index = values.indexOf(id)
-  
+
       if (index > -1) {
         let sid = keys[index]
-  
+
         for (let client of clients) {
           if (client.sid === sid) {
             const params = { noticeFlag: flagDics[flag], userName, userId: data._id, listId: res.listId, mainListId, listName, taskInfo, taskId, noticeTime: noticeTimecur }
@@ -352,7 +353,7 @@ router.post('/tasknotice', async function (ctx, next) {
           }
         }
       }
-  
+
       try {
         const noticeData = { noticeFlag: flagDics[flag], userName, userId: data._id, listId: res.listId, mainListId, listName, taskInfo, taskId, noticeTime: noticeTimecur }
         const result = await Notifications.findOne({ userId: id }, { _id: false })
