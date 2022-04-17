@@ -2,7 +2,7 @@
  * @Author: 胡晨明
  * @Date: 2022-02-28 16:28:09
  * @LastEditors: 胡晨明
- * @LastEditTime: 2022-03-04 10:55:04
+ * @LastEditTime: 2022-03-09 00:22:48
  * @Description: 成就数据接口汇总
  */
 const fs = require('fs')
@@ -42,20 +42,26 @@ router.get('/getachievementscores', async function (ctx, next) {
 
       if (!_.isEmpty(scoreByDay)) {
         let postKeys = Object.keys(postScoreByDay)  // 获取近五天时间模板日期 keys
+        console.log('postKeys: ', postKeys);
         let scoreKeys = Object.keys(scoreByDay)     // 获取所有成就变动日期 keys
         let lastkey = scoreKeys[scoreKeys.length - 1] // 获取最新成就变动日期 key
 
         postKeys.reverse()  // 日期 keys 颠倒，让最新的日期 key 排最前
+        scoreKeys.reverse()
         postScoreByDay[postKeys[0]] = scoreByDay[lastkey] // anyway，当天的成就值总是与最新成就变动日期的成就值相同
 
         postKeys.forEach((item, index) => {
+          console.log('item: ', item)
           if (index === 0) {
             return
           } else {
             const key = scoreKeys.find(item2 => item2 === item) // 查找是否与近五天相同的日期 key 并返回
+            console.log('key: ', key)
 
-            if (scoreKeys.length < 5 && (postKeys[1] === lastkey || postKeys[0] === lastkey) && !key) {
-              const key2 = scoreKeys.find(item3 => item3 === postKeys[index + 1])
+            // ((postKeys[1] === lastkey) || (postKeys[0] === lastkey))
+            if (scoreKeys.length < 5 && !key) {
+              const key2 = scoreKeys.find(item3 => +item3 < +(postKeys[index]))
+              console.log('key2: ', key2);
               if (key2) {
                 postScoreByDay[item] = scoreByDay[key2]
               } else {

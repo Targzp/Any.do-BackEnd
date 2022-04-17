@@ -1,8 +1,8 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-10-23 17:12:02
- * @LastEditTime: 2021-10-25 20:58:48
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2022-03-13 15:03:39
+ * @LastEditors: 胡晨明
  * @Description: 用户自定义设置数据模型
  * @FilePath: \Anydo-app-server\models\customSettingsSchema.js
  */
@@ -35,13 +35,22 @@ const customSettingsSchema = mongoose.Schema({
         }
     },
     "notify": {
+      "dailyNotifyTime": {
+          "time": {
+            type: String
+          },
+          "PA": {
+            type: String,
+            default: "AM"
+          }
+        },
         "mailNotify": {
           type: Boolean,
           default: false
         },
         "webNotify": {
-            type: Boolean,
-            default: true
+          type: Boolean,
+          default: true
         }
     },
     "taskDefault": {

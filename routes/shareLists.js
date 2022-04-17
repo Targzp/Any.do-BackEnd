@@ -73,9 +73,6 @@ router.post('/shareusers', async function (ctx, next) {
   } = utils.decoded(auth)
 
   try {
-    // const clientsSid = WSOrder.clientsSid
-    // const values = [...clientsSid.values()]
-    
     let res = null
 
     if (listId > 300000) {

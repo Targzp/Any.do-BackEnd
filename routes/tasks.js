@@ -1,7 +1,7 @@
 /*
  * @Author: 胡晨明
  * @Date: 2021-12-01 16:44:41
- * @LastEditTime: 2022-03-02 16:15:53
+ * @LastEditTime: 2022-03-08 15:06:42
  * @LastEditors: 胡晨明
  * @Description: 任务数据接口汇总
  * @FilePath: \Anydo-app-server\routes\tasks.js
@@ -154,7 +154,8 @@ const deleteUserTask = async (userId, listId, taskId) => {
     }]
   })
 
-  await ShareLists.findOneAndUpdate({ userId, mainListId: listId }, { $pull: { listTasks: { taskId } } })
+  // 同步删除共享清单任务
+  await ShareLists.findOneAndUpdate({ userId, mainListId: listId }, { '$pull': { 'listTasks': { taskId } } })
 }
 
 //! 用户添加任务数据接口
@@ -497,6 +498,7 @@ router.post('/updatetask', async function (ctx, next) {
         if (isEditShare) {
           await ShareLists.findOneAndUpdate({ $and: [{ listId: shareId }, { 'listTasks.taskId': taskId }] }, {'$set': {
             'listTasks.$.softDelFlag': value,
+            'listTasks.$.taskExecutor': ''
           }})
         }
 
@@ -745,6 +747,9 @@ router.post('/batchdeletetask', async function (ctx, next) {
           'list.listId': ltId.listId
         }]
       })
+
+      // 同步删除共享清单任务
+      await ShareLists.findOneAndUpdate({ userId: data._id, mainListId: ltId.listId }, { '$pull': { 'listTasks': { taskId: ltId.taskId } } })
     }
 
     ctx.body = utils.success({}, '任务批量删除成功')

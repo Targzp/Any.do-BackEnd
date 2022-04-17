@@ -2,7 +2,7 @@
  * @Author: 胡晨明
  * @Date: 2022-02-17 14:13:29
  * @LastEditors: 胡晨明
- * @LastEditTime: 2022-03-02 09:58:45
+ * @LastEditTime: 2022-03-08 11:30:35
  * @Description: 专注数据接口汇总
  */
 const router = require('koa-router')()
@@ -26,8 +26,13 @@ router.get('/getfocuses', async function (ctx, next) {
 
   try {
     const result = await Focuses.findOne({ userId: data._id }, { _id: false }).select('focuses')
-    const focuses = result.focuses
-    ctx.body = utils.success(focuses, '获取专注数据成功')
+    if (result) {
+      const focuses = result.focuses
+      ctx.body = utils.success(focuses, '获取专注数据成功')
+    } else {
+      ctx.body = utils.success([], '用户不存在专注数据')
+    }
+    
   } catch (error) {
     ctx.body = utils.fail(`${error}`)
   }
